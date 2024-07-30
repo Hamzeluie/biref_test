@@ -1,0 +1,8 @@
+lr: 0.00005
+optimizer: 'AdamW'
+iou_patch: 0
+mse: 0
+triplet: 1
+reg: 0
+cnt: 0
+structure: 0

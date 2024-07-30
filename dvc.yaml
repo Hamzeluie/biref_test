@@ -1,0 +1,16 @@
+stages:
+  train:
+    cmd: python train.py
+    deps:
+    - train.py
+    params:
+    - cnt
+    - iou_patch
+    - lr
+    - mse
+    - optimizer
+    - reg
+    - structure
+    - triplet
+    metrics:
+    - results/metrics.json
