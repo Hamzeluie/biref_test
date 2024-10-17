@@ -4,7 +4,9 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from pathlib import Path
 from torch.autograd import Variable
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from config import Config
 from loss import PixLoss, ClsLoss
@@ -20,6 +22,7 @@ from torch.cuda import amp
 from dvclive import Live
 import yaml
 
+
 # parser = argparse.ArgumentParser(description='')
 # parser.add_argument('--resume', default=None, type=str, help='path to latest checkpoint')
 # parser.add_argument('--epochs', default=120, type=int)
@@ -31,13 +34,12 @@ import yaml
 
 parameters = {
     "resume": None,
-    "epochs": 3,
+    "epochs": 10,
     "trainset": "DIS5K",
-    "ckpt_dir": "/media/fteam4/External/mehdi/background/mehdi/BiRefNet/temp",
+    "ckpt_dir": f"{ROOT_DIR}/temp",
     "testsets": "DIS-TE",
     "dist": False,
     }
-
 # args = parser.parse_args()
 args = argparse.Namespace(**parameters)
 
@@ -340,8 +342,8 @@ class Trainer:
             performance_dict, df = valid(
                 self.model,
                 data_loader_test,
-                pred_dir='.',
-                method=args.ckpt_dir.split('/')[-1] if args.ckpt_dir.split('/')[-1].strip('.').strip('/') else 'tmp_val',
+                pred_dir=ROOT_DIR,
+                method=Path(args.ckpt_dir).name + str(epoch),
                 testset=testset,
                 only_S_MAE=config.only_S_MAE,
                 device=device
@@ -379,7 +381,7 @@ def main():
 
     with Live("/media/fteam4/External/mehdi/background/mehdi/BiRefNet/results") as live:
         for epoch in range(epoch_st, args.epochs+1):
-            train_loss = trainer.train_epoch(epoch)
+            # train_loss = trainer.train_epoch(epoch)
             performance_dict, df = trainer.validate_model(epoch)
             # Save checkpoint
             # DDP
@@ -405,7 +407,7 @@ def main():
             destroy_process_group()
 
 if __name__ == '__main__':
-    train_params = yaml.safe_load(open("/media/fteam4/External/mehdi/background/mehdi/BiRefNet/params.yaml"))
+    train_params = yaml.safe_load(open("/media/fteam4/External/mehdi/background/mehdi/biref_test/params.yaml"))
     config.lr = train_params["lr"]
     config.optimizer = train_params["optimizer"]
 

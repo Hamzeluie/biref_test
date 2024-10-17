@@ -151,6 +151,69 @@ class ClsLoss(nn.Module):
         return loss
 
 
+class BiconLoss(nn.Module):
+    def __init__(self, weight_boundary=1.0, eps=1e-7):
+        """
+        BiconLoss combines Binary Cross-Entropy (BCE) with Boundary Loss.
+        
+        Args:
+            weight_boundary (float): Weight factor for the boundary loss component.
+            eps (float): Small value to avoid division by zero in boundary loss.
+        """
+        super(BiconLoss, self).__init__()
+        self.weight_boundary = weight_boundary
+        self.eps = eps
+        self.bce_loss = nn.BCEWithLogitsLoss()
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits (Tensor): Raw predictions from the model (before sigmoid), shape (N, 1, H, W).
+            targets (Tensor): Ground truth binary segmentation mask, shape (N, 1, H, W).
+            
+        Returns:
+            Tensor: The computed Bicon Loss.
+        """
+        # Binary Cross Entropy Loss (BCE)
+        bce = self.bce_loss(logits, targets)
+        
+        # Boundary Loss (Dice Loss as a proxy)
+        boundary_loss = self.dice_loss(logits, targets)
+
+        # Combine BCE with Boundary Loss
+        loss = bce + self.weight_boundary * boundary_loss
+        
+        return loss
+
+    def dice_loss(self, logits, targets):
+        """
+        Dice Loss to measure boundary accuracy.
+        
+        Args:
+            logits (Tensor): Raw predictions from the model (before sigmoid), shape (N, 1, H, W).
+            targets (Tensor): Ground truth binary segmentation mask, shape (N, 1, H, W).
+        
+        Returns:
+            Tensor: Dice loss value.
+        """
+        # Apply sigmoid to get probabilities
+        probs = torch.sigmoid(logits)
+        
+        # Flatten the probabilities and targets to calculate Dice
+        probs_flat = probs.view(-1)
+        targets_flat = targets.view(-1)
+
+        # Compute intersection and union for Dice loss
+        intersection = (probs_flat * targets_flat).sum()
+        union = probs_flat.sum() + targets_flat.sum()
+
+        # Dice coefficient and loss
+        dice_coeff = (2. * intersection + self.eps) / (union + self.eps)
+        dice_loss = 1. - dice_coeff
+        
+        return dice_loss
+    
+
 class PixLoss(nn.Module):
     """
     Pixel loss for each refined map output.
@@ -177,6 +240,9 @@ class PixLoss(nn.Module):
             self.criterions_last['cnt'] = ContourLoss()
         if 'structure' in self.lambdas_pix_last and self.lambdas_pix_last['structure']:
             self.criterions_last['structure'] = StructureLoss()
+        if 'bicon' in self.lambdas_pix_last and self.lambdas_pix_last['bicon']:
+            self.criterions_last['bicon'] = BiconLoss()
+            
 
     def forward(self, scaled_preds, gt):
         loss = 0.

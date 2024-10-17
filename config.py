@@ -101,21 +101,22 @@ class Config():
         self.lambdas_pix_last = {
             # not 0 means opening this loss
             # original rate -- 1 : 30 : 1.5 : 0.2, bce x 30
-            'bce': 30 * 1,          # high performance
+            'bce': 30 * 0,          # high performance
             'iou': 0.5 * 1,         # 0 / 255
             'iou_patch': 0.5 * 0,   # 0 / 255, win_size = (64, 64)
             'mse': 150 * 0,         # can smooth the saliency map
             'triplet': 3 * 0,
             'reg': 100 * 0,
-            'ssim': 10 * 1,          # help contours,
-            'cnt': 5 * 0,          # help contours
+            'ssim': 10 * 0,          # help contours,
+            'cnt': 5 * 1,          # help contours
             'structure': 5 * 0,    # structure loss from codes of MVANet. A little improvement on DIS-TE[1,2,3], a bit more decrease on DIS-TE4.
+            'bicon': 1,
         }
         self.lambdas_cls = {
             'ce': 5.0
         }
         # Adv
-        self.lambda_adv_g = 10. * 1        # turn to 0 to avoid adv training
+        self.lambda_adv_g = 10. * 0        # turn to 0 to avoid adv training
         self.lambda_adv_d = 3. * (self.lambda_adv_g > 0)
 
         # PATH settings - inactive

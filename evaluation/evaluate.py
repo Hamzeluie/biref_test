@@ -1,6 +1,7 @@
 import os
 import prettytable as pt
-
+from pathlib import Path
+ROOT_DIR = Path(__file__).parents[1].as_posix()
 from evaluation.metrics import evaluator
 from config import Config
 
@@ -8,7 +9,7 @@ from config import Config
 config = Config()
 
 def evaluate(pred_dir, method, testset, only_S_MAE=False, epoch=0):
-    filename = os.path.join('evaluation', 'eval-{}.txt'.format(method))
+    filename = os.path.join(ROOT_DIR, method, 'eval-{}.txt'.format(method))
     if os.path.exists(filename):
         id_suffix = 1
         filename = filename.rstrip('.txt') + '_{}.txt'.format(id_suffix)
